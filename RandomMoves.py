@@ -1,0 +1,4 @@
+class RandomMoves:
+
+
+    self
