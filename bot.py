@@ -13,10 +13,10 @@ header = {"Authorization":"Bearer {}".format(token)}
 
 
 
-#def playGame(id):
-def playGame(a,b,c,d,e,f,g,h):
+def playGame(id):
+#def playGame(a,b,c,d,e,f,g,h):
 
-    print(a,b,c,d,e,f,g,h)
+    #print(a,b,c,d,e,f,g,h)
 
     requests.post("https://lichess.org/api/challenge/{}/accept".format(id), headers=header)
 
@@ -121,7 +121,7 @@ if __name__ == "__main__":
             print(j["type"], decoded_line)
 
             if j["type"] == "challenge":
-                id = j["challenge"]["id"]
+                _id = j["challenge"]["id"]
 
-                t = threading.Thread(target=playGame, args=(id))
+                t = threading.Thread(target=playGame, args=(_id,))
                 t.start()
