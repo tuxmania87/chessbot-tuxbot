@@ -4,14 +4,16 @@ from board import Board
 from chessutil import ChessUtils
 import threading
 import random
+from movegen import MovementGenerator
 
 b = Board()
 c = ChessUtils()
+m = MovementGenerator()
 
 token = "Ad48N2ugS3X9ONo8"
 header = {"Authorization":"Bearer {}".format(token)}
 
-
+doMove = m.candidateMoves
 
 def playGame(id):
 #def playGame(a,b,c,d,e,f,g,h):
@@ -45,7 +47,8 @@ def playGame(id):
 
                     amIwhite = True
 
-                    chessMove = c.getRandomMove(b.board, amIwhite)
+                    #chessMove = m.getRandomMove(b.board, amIwhite)
+                    chessMove = doMove(b.board, amIwhite)
                     if chessMove is None:
                         print("end of game")
                         exit(0)
@@ -64,7 +67,7 @@ def playGame(id):
 
                     _r = requests.post("https://lichess.org/api/bot/game/{}/move/{}".format(id, chessMove),
                                        headers=header)
-                    _r.json()
+                    print(_r.json())
 
             if j["type"] == "gameState":
 
@@ -87,7 +90,13 @@ def playGame(id):
                     print("received: ", lastmove)
 
                     # make own move
-                    chessMove = c.getRandomMove(b.board, amIwhite)
+                    #chessMove = m.getRandomMove(b.board, amIwhite)
+
+
+                    chessMove = doMove(b.board, amIwhite)
+
+
+
                     if chessMove is None:
                         print("end of game")
                         exit(0)
@@ -105,7 +114,7 @@ def playGame(id):
 
                     _r = requests.post("https://lichess.org/api/bot/game/{}/move/{}".format(id, chessMove),
                                        headers=header)
-                    _r.json()
+                    print(_r.json())
 
 
 
