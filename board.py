@@ -7,6 +7,12 @@ class Board:
     def __init__(self):
         self.board = ['' for i in range(64)]
 
+        self.castle_rights_long_black = True
+        self.castle_rights_short_black = True
+
+        self.castle_rights_long_white = True
+        self.castle_rights_short_white = True
+
         # init white
         self.board[0] = 'r'
         self.board[1] = 'n'
@@ -34,6 +40,26 @@ class Board:
             self.board[i] = 'P'
 
         self.cols = ["a", "b", "c", "d", "e", "f", "g", "h"]
+
+    def copy(self):
+        new_b = Board()
+        new_b.board = self.board
+        return new_b
+
+    def do_move(self, move):
+        _p = self.board[move[0]]
+        self.board[move[0]] = ''
+        self.board[move[1]] = _p
+
+        if _p == 'k':
+            self.castle_rights_long_white = False
+            self.castle_rights_short_white = False
+        elif _p == 'K':
+            self.castle_rights_long_black = False
+            self.castle_rights_short_black = False
+
+
+
 
     def positionToChessCoordinates(self, position):
 
