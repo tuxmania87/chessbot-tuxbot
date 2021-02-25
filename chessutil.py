@@ -202,12 +202,12 @@ class ChessUtils:
         for i in range(64):
 
 
-            print("Check for ", i)
+            #print("Check for ", i)
 
             if (board[i] != '' and board[i].islower() and iswhite) or (board[i] != '' and not board[i].islower() and not iswhite):
                 possible_moves = self.getAllPieceMoves(board, i)
 
-                print("Check for ", i, possible_moves)
+                #print("Check for ", i, possible_moves)
 
                 for targets in possible_moves:
                     allmoves.append((i, targets))

@@ -117,29 +117,32 @@ class MovementGenerator:
 
         return self.getRandomMove(board, iswhite)
 
-    def get_next_move_min_max(self, board, iswhite):
+    def get_next_move_min_max(self, board, iswhite, depth):
         if iswhite:
-            return self.min_max_maxi(board, iswhite, 2)
+            a,b = self.min_max_maxi(board, iswhite, depth)
+            return a,b
         else:
-            return self.min_max_mini(board, not iswhite, 2)
+            return self.min_max_mini(board, not iswhite, depth)
 
     def min_max_maxi(self, board, iswhite, depth):
         if depth == 0:
-            return MovementGenerator.min_max_eval(board), ""
+            return MovementGenerator.min_max_eval(board), []
 
         int_max = -20000000
         move_max = ""
+        move_stack = []
         all_moves = self.cu.getAllPlayerMoves(board.board, iswhite)
 
         for move in all_moves:
             b2 = board.copy()
             b2.do_move(move)
-            score = self.min_max_mini(b2, not iswhite, depth -1)[0]
+            score, bmove = self.min_max_mini(b2, not iswhite, depth -1)
             if score > int_max:
                 int_max = score
                 move_max = move
-
-        return int_max, move_max
+                move_stack = bmove
+        move_stack.append(move_max)
+        return int_max, move_stack
 
 
 
@@ -147,21 +150,24 @@ class MovementGenerator:
 
     def min_max_mini(self, board, iswhite, depth):
         if depth == 0:
-            return -1 * MovementGenerator.min_max_eval(board), ""
+            return -1 * MovementGenerator.min_max_eval(board), []
 
         int_min = 20000000
         move_min = ""
+        move_stack = []
         all_moves = self.cu.getAllPlayerMoves(board.board, iswhite)
 
         for move in all_moves:
             b2 = board.copy()
             b2.do_move(move)
-            score = self.min_max_maxi(b2, not iswhite, depth -1)[0]
+            score, bmove = self.min_max_maxi(b2, not iswhite, depth -1)
             if score < int_min:
                 int_min = score
                 move_min = move
+                move_stack = bmove
 
-        return int_min, move_min
+        move_stack.append(move_min)
+        return int_min, move_stack
 
     @staticmethod
     def min_max_eval(board):

@@ -25,19 +25,9 @@ print(movegen.MovementGenerator.min_max_eval(b))
 
 mg = movegen.MovementGenerator()
 
-best_move = mg.get_next_move_min_max(b, True)
+best_move = mg.get_next_move_min_max(b, True, 4)
 
-b.board = ['' for i in range(64)]
-b.board[60] = 'K'
-
-b.board[28] = 'r'
-
-print(movegen.MovementGenerator.min_max_eval(b))
-
-print(c.isPlayerInCheck(b.board, False))
-
-b.renderBoard()
-
+print(best_move)
 
 
 

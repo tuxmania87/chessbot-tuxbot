@@ -43,7 +43,7 @@ class Board:
 
     def copy(self):
         new_b = Board()
-        new_b.board = self.board
+        new_b.board = self.board.copy()
         return new_b
 
     def do_move(self, move):
