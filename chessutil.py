@@ -216,7 +216,7 @@ class ChessUtils:
 
         # if in check then only consider moves that bring you out of check
         if self.isPlayerInCheck(board, iswhite):
-            print("CHECK FILTER")
+            #print("CHECK FILTER")
             # for each move create temp board and see if in check, if not consider it
             for move in allmoves:
                 f,t = move

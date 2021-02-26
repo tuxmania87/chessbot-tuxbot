@@ -16,6 +16,7 @@ pos = 28
 #b.renderBoard()
 
 #b.board[pos] = 'N'
+
 #moves = c.getAllPieceMoves(b.board, pos)
 #moves = c.getAllPlayerMoves(b.board, True)
 #b.renderBoard(highlights=moves)
@@ -25,7 +26,8 @@ print(movegen.MovementGenerator.min_max_eval(b))
 
 mg = movegen.MovementGenerator()
 
-best_move = mg.get_next_move_min_max(b, True, 4)
+best_move = mg.get_next_move_alpha_beta(b, True, 3)
+print(mg.saved_moved)
 
 print(best_move)
 

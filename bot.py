@@ -10,10 +10,11 @@ b = Board()
 c = ChessUtils()
 m = MovementGenerator()
 
-token = "Ad48N2ugS3X9ONo8"
+token = "T2VkC8Eru2c62x9f"
 header = {"Authorization":"Bearer {}".format(token)}
 
-doMove = m.candidateMoves
+doMove = m.get_next_move_alpha_beta
+designated_depth = 3
 
 def playGame(id):
 #def playGame(a,b,c,d,e,f,g,h):
@@ -43,12 +44,12 @@ def playGame(id):
                 print("!!", j)
                 print(j["white"]["id"])
 
-                if j["white"]["id"] == "tuxbot":
+                if j["white"]["id"] == "tuxbot9000":
 
                     amIwhite = True
 
                     #chessMove = m.getRandomMove(b.board, amIwhite)
-                    chessMove = doMove(b.board, amIwhite)
+                    chessMove = doMove(b, amIwhite, designated_depth)
                     if chessMove is None:
                         print("end of game")
                         exit(0)
@@ -93,7 +94,7 @@ def playGame(id):
                     #chessMove = m.getRandomMove(b.board, amIwhite)
 
 
-                    chessMove = doMove(b.board, amIwhite)
+                    chessMove = doMove(b, amIwhite, designated_depth)
 
 
 

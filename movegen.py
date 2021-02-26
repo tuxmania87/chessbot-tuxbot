@@ -4,10 +4,12 @@ import random
 
 class MovementGenerator:
 
+    cu = ChessUtils()
 
     def __init__(self):
 
         self.cu = ChessUtils()
+        self.saved_moved = ""
 
     def getRandomMove(self, board, iswhite):
 
@@ -119,10 +121,15 @@ class MovementGenerator:
 
     def get_next_move_min_max(self, board, iswhite, depth):
         if iswhite:
-            a,b = self.min_max_maxi(board, iswhite, depth)
-            return a,b
+            a, b = self.min_max_maxi(board, iswhite, depth)
+            f, t = b[-1]
+            _board = Board()
+            return "{}{}".format(_board.positionToChessCoordinates(f), _board.positionToChessCoordinates(t))
         else:
-            return self.min_max_mini(board, not iswhite, depth)
+            a, b = self.min_max_mini(board, not iswhite, depth)
+            f, t = b[-1]
+            _board = Board()
+            return "{}{}".format(_board.positionToChessCoordinates(f), _board.positionToChessCoordinates(t))
 
     def min_max_maxi(self, board, iswhite, depth):
         if depth == 0:
@@ -180,5 +187,75 @@ class MovementGenerator:
                 continue
             sum += val[piece.lower()] * (-1 if piece.isupper() else 1)
 
+        mobility = len(MovementGenerator.cu.getAllPlayerMoves(board.board, True)) \
+                   - len(MovementGenerator.cu.getAllPlayerMoves(board.board , False))
+
+        sum += 0.1 * mobility
+
         return sum
 
+
+    def alpha_beta_max(self, board, iswhite, depth, a, b, maxd):
+        if depth == 0:
+            return MovementGenerator.min_max_eval(board), []
+        max_val = a
+        move_max = ""
+        move_stack = []
+        all_moves = self.cu.getAllPlayerMoves(board.board, iswhite)
+        for move in all_moves:
+            b2 = board.copy()
+            b2.do_move(move)
+            score, bmove = self.alpha_beta_min(b2, not iswhite, depth - 1, max_val, b, maxd)
+            if score > max_val:
+                max_val = score
+                move_max = move
+                move_stack = bmove
+
+                if depth == maxd:
+                    self.saved_moved = move
+
+                if max_val >= b:
+                    break
+
+
+        move_stack.append(move_max)
+        return max_val, move_stack
+
+    def alpha_beta_min(self, board, iswhite, depth, a, b, maxd):
+        if depth == 0:
+            return MovementGenerator.min_max_eval(board), []
+        min_val = b
+        min_move = ""
+        move_stack = []
+        all_moves = self.cu.getAllPlayerMoves(board.board, iswhite)
+        for move in all_moves:
+            b2 = board.copy()
+            b2.do_move(move)
+            score, bmove = self.alpha_beta_max(b2, not iswhite, depth - 1, a, min_val, maxd)
+            if score < min_val:
+                min_val = score
+                min_move = move
+                move_stack = bmove
+
+                if depth == maxd:
+                    self.saved_moved = move
+
+                if min_val >= b:
+                    break
+
+
+        move_stack.append(min_move)
+        return min_val, move_stack
+
+    def get_next_move_alpha_beta(self, board, iswhite, depth):
+        self.saved_moved = None
+        if iswhite:
+            self.alpha_beta_max(board, iswhite, depth, -2000000, 2000000, depth)
+            f, t = self.saved_moved
+            _board = Board()
+            return "{}{}".format(_board.positionToChessCoordinates(f), _board.positionToChessCoordinates(t))
+        else:
+            self.alpha_beta_min(board, iswhite, depth, -2000000, 2000000, depth)
+            f, t = self.saved_moved
+            _board = Board()
+            return "{}{}".format(_board.positionToChessCoordinates(f), _board.positionToChessCoordinates(t))
