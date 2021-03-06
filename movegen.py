@@ -1,6 +1,7 @@
 from board import Board
 from chessutil import ChessUtils
 import random
+import time
 
 class MovementGenerator:
 
@@ -178,6 +179,7 @@ class MovementGenerator:
 
     @staticmethod
     def min_max_eval(board):
+        #_tstart = time.time_ns()
         sum = 0
 
         val = {"k": 200, "q": 9, "r":5, "b": 3, "n":3, "p": 1}
@@ -192,6 +194,9 @@ class MovementGenerator:
 
         sum += 0.1 * mobility
 
+        #_tende = time.time_ns()
+        #print(_tende - _tstart)
+
         return sum
 
 
@@ -201,7 +206,9 @@ class MovementGenerator:
         max_val = a
         move_max = ""
         move_stack = []
+        #_t = time.time_ns()
         all_moves = self.cu.getAllPlayerMoves(board.board, iswhite)
+        #print("MV ", depth, " " * (maxd - depth), time.time_ns() - _t)
         for move in all_moves:
             b2 = board.copy()
             b2.do_move(move)
@@ -227,7 +234,9 @@ class MovementGenerator:
         min_val = b
         min_move = ""
         move_stack = []
+        #_t = time.time_ns()
         all_moves = self.cu.getAllPlayerMoves(board.board, iswhite)
+        #print("MV ",depth, " " * (maxd - depth), time.time_ns()-_t)
         for move in all_moves:
             b2 = board.copy()
             b2.do_move(move)
@@ -250,9 +259,11 @@ class MovementGenerator:
     def get_next_move_alpha_beta(self, board, iswhite, depth):
         self.saved_moved = None
         if iswhite:
+            _s = time.time()
             self.alpha_beta_max(board, iswhite, depth, -2000000, 2000000, depth)
             f, t = self.saved_moved
             _board = Board()
+            print("gesamt ", time.time() - _s)
             return "{}{}".format(_board.positionToChessCoordinates(f), _board.positionToChessCoordinates(t))
         else:
             self.alpha_beta_min(board, iswhite, depth, -2000000, 2000000, depth)

@@ -24,9 +24,23 @@ pos = 28
 
 print(movegen.MovementGenerator.min_max_eval(b))
 
+import cProfile
+
+
+
 mg = movegen.MovementGenerator()
 
+pr = cProfile.Profile()
+pr.enable()
+
+
 best_move = mg.get_next_move_alpha_beta(b, True, 3)
+
+
+pr.disable()
+# after your program ends
+pr.print_stats(sort="calls")
+
 print(mg.saved_moved)
 
 print(best_move)

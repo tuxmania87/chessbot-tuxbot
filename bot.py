@@ -14,7 +14,7 @@ token = "T2VkC8Eru2c62x9f"
 header = {"Authorization":"Bearer {}".format(token)}
 
 doMove = m.get_next_move_alpha_beta
-designated_depth = 3
+designated_depth = 2
 
 def playGame(id):
 #def playGame(a,b,c,d,e,f,g,h):

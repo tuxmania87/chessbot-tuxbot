@@ -2,10 +2,62 @@ import random
 from board import Board
 
 class ChessUtils:
+    table = None
 
+    hash_lookup_pieces = {
+        "p" : 1,
+        "P" : 2,
+        "r" : 3,
+        "R" : 4,
+        "b" : 5,
+        "B" : 6,
+        "n" : 7,
+        "N" : 8,
+        "k" : 9,
+        "K" : 10,
+        "q" : 11,
+        "Q" : 12
+
+    }
+
+    def random_bitstring(self):
+        return random.randint(0, 2 ** 64 - 1)
+
+    def init_hash(self):
+        global table
+        table = [[] for _ in range(64)]
+        for i in range(64):
+            table[i] = [[] for _ in range(12)]
+            for j in range(12):
+                table[i][j] = self.random_bitstring()
+
+    def get_board_hash(self, board):
+        '''
+        constant indices
+        white_pawn := 1
+        white_rook := 2
+        # etc.
+        black_king := 12
+
+        '''
+
+
+
+        h = 0
+        for i in range(64):
+            if board[i] != '':
+
+                j = self.hash_lookup_pieces[board[i]]
+
+                h = h ^ table[i][j]
+
+        return h
 
     def __init__(self):
         pass
+
+        self.table = None
+        self.init_hash()
 
         self.moves = {}
         self.moves["NORTH"] = 8
