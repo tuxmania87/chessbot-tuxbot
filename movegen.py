@@ -1,5 +1,5 @@
 from board import Board
-from chessutil import ChessUtils
+from chessutil import ChessUtils, HashEntry
 import random
 import time
 
@@ -7,10 +7,13 @@ class MovementGenerator:
 
     cu = ChessUtils()
 
+
     def __init__(self):
 
         self.cu = ChessUtils()
         self.saved_moved = ""
+        self.hashes = {}
+
 
     def getRandomMove(self, board, iswhite):
 
@@ -179,6 +182,8 @@ class MovementGenerator:
 
     @staticmethod
     def min_max_eval(board):
+
+
         #_tstart = time.time_ns()
         sum = 0
 
@@ -212,7 +217,9 @@ class MovementGenerator:
         for move in all_moves:
             b2 = board.copy()
             b2.do_move(move)
+
             score, bmove = self.alpha_beta_min(b2, not iswhite, depth - 1, max_val, b, maxd)
+
             if score > max_val:
                 max_val = score
                 move_max = move
@@ -240,7 +247,9 @@ class MovementGenerator:
         for move in all_moves:
             b2 = board.copy()
             b2.do_move(move)
+
             score, bmove = self.alpha_beta_max(b2, not iswhite, depth - 1, a, min_val, maxd)
+
             if score < min_val:
                 min_val = score
                 min_move = move
@@ -270,3 +279,66 @@ class MovementGenerator:
             f, t = self.saved_moved
             _board = Board()
             return "{}{}".format(_board.positionToChessCoordinates(f), _board.positionToChessCoordinates(t))
+
+
+    def get_next_move_neg_max(self, board, iswhite, depth):
+        #negamax(rootNode, depth, −∞, +∞, 1)
+        print(self.neg_max( board, iswhite, depth, -20000000, 20000000, depth))
+        f, t = self.saved_moved
+        _board = Board()
+        return "{}{}".format(_board.positionToChessCoordinates(f), _board.positionToChessCoordinates(t))
+
+
+    def neg_max(self, board, iswhite, depth, a, b, maxd):
+        a_orig = a
+
+        h = self.cu.get_board_hash(board.board)
+        if h in self.hashes and self.hashes[h].depth >= depth:
+            if self.hashes[h].flag == HashEntry.EXACT:
+                return self.hashes[h].value
+            elif self.hashes[h].flag == HashEntry.LOWERBOUND:
+                a = max(a, self.hashes[h].value)
+            else:
+                b = min(b, self.hashes[h].value)
+
+            if a >= b:
+                return self.hashes[h].value
+
+        if depth == 0:
+            return MovementGenerator.min_max_eval(board)
+
+        all_moves = self.cu.getAllPlayerMoves(board.board, iswhite)
+        val = -2000000
+        for move in all_moves:
+            b2 = board.copy()
+            b2.do_move(move)
+            val = max(val, -1 * self.neg_max(b2, not iswhite, depth -1 ,-b, -a, maxd))
+
+            if val > a and depth == maxd:
+                self.saved_moved = move
+
+
+            a = max(a, val)
+
+
+            if a>= b:
+                break
+
+
+
+        _e = HashEntry()
+        _e.value = val
+        if val <= a_orig:
+            _e.flag = HashEntry.UPPERBOUND
+        elif val >= b:
+            _e.flag = HashEntry.LOWERBOUND
+        else:
+            _e.flag = HashEntry.EXACT
+        _e.depth = depth
+        self.hashes[h] = _e
+
+        return val
+
+
+
+

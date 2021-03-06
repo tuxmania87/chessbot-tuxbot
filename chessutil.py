@@ -1,6 +1,17 @@
 import random
 from board import Board
 
+class HashEntry:
+
+    EXACT = 1
+    UPPERBOUND = 2
+    LOWERBOUND = 3
+
+    def __init__(self):
+        self.upper = 0
+        self.lower = 0
+
+
 class ChessUtils:
     table = None
 
@@ -47,7 +58,7 @@ class ChessUtils:
         for i in range(64):
             if board[i] != '':
 
-                j = self.hash_lookup_pieces[board[i]]
+                j = self.hash_lookup_pieces[board[i]] -1
 
                 h = h ^ table[i][j]
 
