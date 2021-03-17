@@ -811,7 +811,7 @@ class MovementGenerator:
             val = max(val, -1 * self.neg_max_WITHMEMORY(board, not iswhite, depth -1 ,-b, -a, maxd))
             board.pop()
 
-            if val > a and depth == maxd:
+            if val >= a and depth == maxd:
                 self.saved_moved = move
 
 
@@ -860,7 +860,7 @@ class MovementGenerator:
 
     def iterative_MTDF(self, board, iswhite, depth, max_seconds):
         first_guess = 0
-
+        self.saved_moved = None
         _start = time.time()
 
         if depth < 2:
@@ -882,7 +882,12 @@ class MovementGenerator:
         if open_move is not None:
             return open_move
 
-        self.iterative_MTDF( board, iswhite, depth, 3)
+        self.iterative_MTDF( board, iswhite, depth, 5)
+
+        if self.saved_moved is None:
+            sep = random.randint(0, board.legal_moves.count())
+            self.saved_moved = board.legal_moves[sep]
+
         return self.saved_moved
 
 
