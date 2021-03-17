@@ -795,8 +795,8 @@ class MovementGenerator:
                 return MovementGenerator.hashes[h][iswhite].value
 
         if depth == 0:
-            return MovementGenerator.min_max_eval_pychess(board)
-            #return self.quiesce_1(a, b, board, iswhite)
+            #return MovementGenerator.min_max_eval_pychess(board)
+            return self.quiesce_1(a, b, board, iswhite)
 
 
         val = -2000000
