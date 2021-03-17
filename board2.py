@@ -1,6 +1,5 @@
 
 from PIL import Image, ImageDraw, ImageFont
-import PySimpleGUI as sg
 
 class Board2:
 
@@ -42,7 +41,7 @@ class Board2:
         self.cols = ["a", "b", "c", "d", "e", "f", "g", "h"]
 
     def copy(self):
-        new_b = Board()
+        new_b = Board2()
         new_b.board = self.board.copy()
         return new_b
 
@@ -86,52 +85,3 @@ class Board2:
     def positionToCoordinages(self, position):
 
         return position % 8, position // 8
-
-    def renderBoard(self, highlights=None):
-
-        layout = [
-            [
-                sg.Graph(
-                    canvas_size=(600, 600),
-                    graph_bottom_left=(0, 0),
-                    graph_top_right=(600, 600),
-                    key="graph"
-                )
-            ]
-        ]
-
-        window = sg.Window("Chess", layout)
-        window.Finalize()
-
-        graph = window.Element("graph")
-
-        graph.DrawImage(filename="board.png", location=(0,600))
-
-
-
-        #graph.DrawRectangle((0,0),(600/8 +1,600/8+1), line_color="red")
-
-        scale_width = 600 / 8
-
-        for i in range(64):
-
-            # calculate coordinates
-            x,y = self.positionToCoordinages(i)
-
-            x += 1
-            y += 1
-
-            # multiply to scale
-            x = x * scale_width - scale_width/2
-            y = y * scale_width - scale_width/2
-
-            graph.DrawText(self.board[i],location=(x,y),color="red",font=("Courier New", 20))
-
-        if highlights != None:
-            for pos in highlights:
-                x, y = self.positionToCoordinages(pos)
-                graph.DrawRectangle(top_left=(x*scale_width, y*scale_width),  bottom_right=(x*scale_width + scale_width, y*scale_width+scale_width), line_color="blue",line_width=10)
-
-
-
-        window.read()
