@@ -2,18 +2,29 @@ import random
 
 class Board2:
 
+    EMPTY = -1
+    LIGHT = 1
+    DARK = 0
+
+    PAWN = 0
+    KNIGHT = 1
+    BISHOP = 2
+    ROOK = 3
+    QUEEN = 4
+    KING = 5
+
+    def copy(self):
+
+        _b = Board2()
+        _b.piece = self.piece.copy()
+        _b.color = self.color.copy()
+
+        return _b
+
+
     def __init__(self):
 
-        self.EMPTY =  0
-        self.LIGHT = 1
-        self.DARK = -1
 
-        self.PAWN = 0
-        self.KNIGHT = 1
-        self.BISHOP = 2
-        self.ROOK = 3
-        self.QUEEN = 4
-        self.KING = 5
 
         self.rook_moved = {
             0: False,
@@ -28,58 +39,42 @@ class Board2:
         }
 
 
-        color = [self.EMPTY for i in range(64)]
-        piece = [0 for i in range(64)]
+        self.color = [self.EMPTY for _ in range(64)]
+        self.piece = [self.EMPTY for _ in range(64)]
 
         for i in range(0,16):
-            color[i] = self.self.self.LIGHT
+            self.color[i] = self.LIGHT
 
         for i in range (48,64):
-            color[i] = self.DARK
+            self.color[i] = self.DARK
 
-        piece[0] = self.ROOK
-        piece[1] = self.KNIGHT
-        piece[2] = self.BISHOP
-        piece[3] = self.QUEEN
-        piece[4] = self.KING
-        piece[5] = self.BISHOP
-        piece[6] = self.KNIGHT
-        piece[7] = self.ROOK
-
-
-
-        piece[1] = self.self.EMPTY
-        piece[2] = self.self.EMPTY
-        piece[5] = self.self.EMPTY
-        piece[6] = self.self.EMPTY
-
-        color[1] = self.EMPTY
-        color[2] = self.EMPTY
-        color[5] = self.EMPTY
-        color[6] = self.EMPTY
-
-
+        self.piece[0] = self.ROOK
+        self.piece[1] = self.KNIGHT
+        self.piece[2] = self.BISHOP
+        self.piece[3] = self.QUEEN
+        self.piece[4] = self.KING
+        self.piece[5] = self.BISHOP
+        self.piece[6] = self.KNIGHT
+        self.piece[7] = self.ROOK
 
         for i in range(8, 16):
-            piece[i] = self.self.PAWN
+            self.piece[i] = self.PAWN
 
         # init black
-        piece[56] = self.ROOK
-        piece[57] = self.KNIGHT
-        piece[58] = self.BISHOP
-        piece[59] = self.QUEEN
-        piece[60] = self.KNIGHT
-        piece[61] = self.BISHOP
-        piece[62] = self.KNIGHT
-        piece[63] = self.ROOK
+        self.piece[56] = self.ROOK
+        self.piece[57] = self.KNIGHT
+        self.piece[58] = self.BISHOP
+        self.piece[59] = self.QUEEN
+        self.piece[60] = self.KING
+        self.piece[61] = self.BISHOP
+        self.piece[62] = self.KNIGHT
+        self.piece[63] = self.ROOK
 
         for i in range(48, 56):
-            piece[i] = self.self.self.PAWN
+            self.piece[i] = self.PAWN
 
-        piece[11] = self.self.EMPTY
-        color[11] = self.self.EMPTY
 
-        mailbox = [
+        self.mailbox = [
              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
              -1,  0,  1,  2,  3,  4,  5,  6,  7, -1,
@@ -94,7 +89,7 @@ class Board2:
              -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
         ]
 
-        mailbox64 = [
+        self.mailbox64 = [
             21, 22, 23, 24, 25, 26, 27, 28,
             31, 32, 33, 34, 35, 36, 37, 38,
             41, 42, 43, 44, 45, 46, 47, 48,
@@ -106,9 +101,9 @@ class Board2:
         ]
 
 
-    def do_move(self, board, move):
+    def do_move(self, move):
 
-        f, t, _ = move
+        f, t = move[0], move[1]
 
         # check if castle moves
 
@@ -118,10 +113,10 @@ class Board2:
             self.piece[0] = self.EMPTY
             self.piece[4] = self.EMPTY
 
-            self.piece[2] = self.LIGHT
-            self.piece[3] = self.LIGHT
-            self.piece[0] = self.EMPTY
-            self.piece[4] = self.EMPTY
+            self.color[2] = self.LIGHT
+            self.color[3] = self.LIGHT
+            self.color[0] = self.EMPTY
+            self.color[4] = self.EMPTY
 
 
         elif f == 4 and t == 6 and self.piece[f] == self.KING:
@@ -130,10 +125,10 @@ class Board2:
             self.piece[7] = self.EMPTY
             self.piece[4] = self.EMPTY
 
-            self.piece[6] = self.LIGHT
-            self.piece[3] = self.LIGHT
-            self.piece[7] = self.EMPTY
-            self.piece[4] = self.EMPTY
+            self.color[6] = self.LIGHT
+            self.color[3] = self.LIGHT
+            self.color[7] = self.EMPTY
+            self.color[4] = self.EMPTY
 
         elif f == 60 and t == 62 and self.piece[f] == self.KING:
             self.piece[62] = self.KING
@@ -141,10 +136,10 @@ class Board2:
             self.piece[63] = self.EMPTY
             self.piece[60] = self.EMPTY
 
-            self.piece[62] = self.DARK
-            self.piece[61] = self.DARK
-            self.piece[63] = self.EMPTY
-            self.piece[60] = self.EMPTY
+            self.color[62] = self.DARK
+            self.color[61] = self.DARK
+            self.color[63] = self.EMPTY
+            self.color[60] = self.EMPTY
 
         elif f == 60 and t == 58 and self.piece[f] == self.KING:
             self.piece[58] = self.KING
@@ -152,10 +147,10 @@ class Board2:
             self.piece[61] = self.ROOK
             self.piece[56] = self.EMPTY
 
-            self.piece[58] = self.DARK
-            self.piece[60] = self.EMPTY
-            self.piece[61] = self.DARK
-            self.piece[56] = self.EMPTY
+            self.color[58] = self.DARK
+            self.color[60] = self.EMPTY
+            self.color[61] = self.DARK
+            self.color[56] = self.EMPTY
             #or f == 60 and t == 62 and piece[f] == KING \
             #or f == 60 and t == 58 and piece[f] == KING
 
@@ -165,8 +160,8 @@ class Board2:
             self.piece[f] = self.EMPTY
 
             pc = self.color[f]
-            self.piece[t] = pc
-            self.piece[f] = self.EMPTY
+            self.color[t] = pc
+            self.color[f] = self.EMPTY
 
             if p == self.ROOK and f in [0,7,58,63]:
                 self.rook_moved[f] = True
@@ -187,7 +182,7 @@ class Board2:
         return False
 
 
-    def move_gen(self, side, xside):
+    def move_gen_pseudo_legal(self, side, xside):
         all_moves = []
 
         slide = [False, False, True, True, True, False]
@@ -216,7 +211,7 @@ class Board2:
                                     self.color[2] == self.EMPTY and self.color[1] == self.EMPTY:
                                 # check if squares are in check
                                 # generate all enemy moves
-                                op_moves = self.move_gen(xside, side)
+                                op_moves = self.move_gen_pseudo_legal(xside, side)
                                 abort = False
                                 for _m in op_moves:
                                     f, t, c = _m
@@ -229,7 +224,7 @@ class Board2:
                             if not self.rook_moved[7] and not self.king_moved[4] and self.color[6] == self.EMPTY and self.color[5] == self.EMPTY:
                                 # check if squares are in check
                                 # generate all enemy moves
-                                op_moves = self.move_gen(xside, side)
+                                op_moves = self.move_gen_pseudo_legal(xside, side)
                                 abort = False
                                 for _m in op_moves:
                                     f, t, c = _m
@@ -242,7 +237,7 @@ class Board2:
 
 
 
-                    for j in range(len(offsets)):
+                    for j in range(len(offset[0])):
                         n = i
                         while True:
                             # next square along the ray j
@@ -259,43 +254,92 @@ class Board2:
                             if not slide[p]:
                                 break
                 else:
-                    #print("pawnmove")
-
-
-
-                    if self.color[i] == self.LIGHT:
-                        candidates = [10]
-                        candidates64 = [8]
-                        if  i <16:
-                            candidates.append(20)
-                            candidates64.append(16)
-
-                        for ii in range(len(candidates)):
-                            n = self.mailbox[self.mailbox64[i] + candidates[ii]]
-                            if self.piece[i+candidates64[ii]] == self.EMPTY and self.color[i+candidates64[ii]] == self.EMPTY and n != -1:
-                                all_moves.append((i, n, 0))
-                    else:
-                        candidates = [-10]
-                        candidates64 = [-8]
-                        if  i > 47:
-                            candidates.append(-20)
-                            candidates64.append(-16)
-
-                        for ii in range(len(candidates)):
-                            n = self.mailbox[self.mailbox64[i] + candidates[ii]]
-                            if self.piece[i+candidates64[ii]] == self.EMPTY and self.color[i+candidates64[ii]] == self.EMPTY and n != -1:
-                                all_moves.append((i, n, 0))
+                    all_moves += self.get_pawn_moves(i)
 
 
 
 
-        for _m in all_moves:
-            pass
 
         return all_moves
 
     #print(move_gen(1,-1))
-    print(move_gen(-1,1))
+
+    def get_pawn_moves(self,i):
+
+        mm = []
+
+        # print("pawnmove")
+
+        if self.color[i] == self.LIGHT:
+            candidates = [10]
+            candidates64 = [8]
+            if i < 16:
+                candidates.append(20)
+                candidates64.append(16)
+
+            for ii in range(len(candidates)):
+                n = self.mailbox[self.mailbox64[i] + candidates[ii]]
+                if self.piece[i + candidates64[ii]] == self.EMPTY and self.color[
+                    i + candidates64[ii]] == self.EMPTY and n != -1:
+                    mm.append((i, n, 0))
+        else:
+            candidates = [-10]
+            candidates64 = [-8]
+            if i > 47:
+                candidates.append(-20)
+                candidates64.append(-16)
+
+            for ii in range(len(candidates)):
+                n = self.mailbox[self.mailbox64[i] + candidates[ii]]
+                if self.piece[i + candidates64[ii]] == self.EMPTY and self.color[
+                    i + candidates64[ii]] == self.EMPTY and n != -1:
+                    mm.append((i, n, 0))
+
+        # check pawn takes moves
+        if self.color[i] == self.LIGHT:
+            candidates = [9, 11]
+            candidates64 = [7, 9]
+
+            for ii in range(len(candidates)):
+                n = self.mailbox[self.mailbox64[i] + candidates[ii]]
+                if self.color[i + candidates64[ii]] == self.DARK and n != -1:
+                    mm.append((i, n, 0))
+        elif self.color[i] == self.DARK:
+            candidates = [-9, -11]
+            candidates64 = [-7, -9]
+
+            for ii in range(len(candidates)):
+                n = self.mailbox[self.mailbox64[i] + candidates[ii]]
+                if self.color[i + candidates64[ii]] == self.LIGHT and n != -1:
+                    mm.append((i, n, 0))
+
+        return mm
+
+    def helper(self, move, side, xside):
+
+        b2 = self.copy()
+        b2.do_move(move)
+
+        op_moves = b2.move_gen_pseudo_legal(xside, side)
+
+        for _om in op_moves:
+            if _om[2] == 1 and self.piece[_om[1]] == self.KING and self.color[_om[1]] == side:
+                return False
+        return True
+
+    def move_gen_legal(self, side, xside):
+
+        all_moves = self.move_gen_pseudo_legal(side, xside)
+
+
+        filtered_moves = []
+        for _m in all_moves:
+            # get all opponent moves
+
+            if self.helper(_m, side, xside):
+                filtered_moves.append(_m)
+
+        return filtered_moves
 
 
 

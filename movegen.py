@@ -1,4 +1,5 @@
 from board import Board
+from board2 import Board2
 from chessutil import ChessUtils, HashEntry
 import random
 import time
@@ -204,6 +205,30 @@ class MovementGenerator:
 
         return sum
 
+    @staticmethod
+    def min_max_eval_board2(board):
+
+        # _tstart = time.time_ns()
+        sum = 0
+
+        val = {Board2.KING: 200, Board2.QUEEN: 9, Board2.ROOK: 5, Board2.BISHOP: 3, Board2.KNIGHT: 3, Board2.PAWN: 1}
+
+        for i in range(64):
+            if board.piece[i] == Board2.EMPTY:
+                continue
+
+            sum += val[board.piece[i]] * (-1 if board.color[i] == Board2.DARK else 1)
+
+
+        mobility = len(board.move_gen_pseudo_legal(Board2.LIGHT, Board2.DARK)) - len(board.move_gen_pseudo_legal(Board2.DARK,Board2.LIGHT))
+
+        sum += 0.1 * mobility
+
+        # _tende = time.time_ns()
+        # print(_tende - _tstart)
+
+        return sum
+
 
     def alpha_beta_max(self, board, iswhite, depth, a, b, maxd):
         if depth == 0:
@@ -340,5 +365,61 @@ class MovementGenerator:
         return val
 
 
+    def neg_max_board2(self, board, iswhite, depth, a, b, maxd):
+        a_orig = a
+
+        h = self.cu.get_board_hash_board2(board)
+        if h in self.hashes and self.hashes[h].depth >= depth:
+            print("hit")
+            if self.hashes[h].flag == HashEntry.EXACT:
+                return self.hashes[h].value
+            elif self.hashes[h].flag == HashEntry.LOWERBOUND:
+                a = max(a, self.hashes[h].value)
+            else:
+                b = min(b, self.hashes[h].value)
+
+            if a >= b:
+                return self.hashes[h].value
+
+        if depth == 0:
+            return MovementGenerator.min_max_eval_board2(board)
+
+        all_moves = board.move_gen_legal(Board2.LIGHT if iswhite else Board2.DARK, Board2.DARK if iswhite else Board2.LIGHT)
+        val = -2000000
+        for move in all_moves:
+            b2 = board.copy()
+            b2.do_move(move)
+            val = max(val, -1 * self.neg_max_board2(b2, not iswhite, depth -1 ,-b, -a, maxd))
+
+            if val > a and depth == maxd:
+                self.saved_moved = move
 
 
+            a = max(a, val)
+
+
+            if a>= b:
+                break
+
+
+
+        _e = HashEntry()
+        _e.value = val
+        if val <= a_orig:
+            _e.flag = HashEntry.UPPERBOUND
+        elif val >= b:
+            _e.flag = HashEntry.LOWERBOUND
+        else:
+            _e.flag = HashEntry.EXACT
+        _e.depth = depth
+        self.hashes[h] = _e
+
+        return val
+
+    def get_next_move_neg_max_board2(self, board, iswhite, depth):
+        #negamax(rootNode, depth, −∞, +∞, 1)
+        print(self.neg_max_board2( board, iswhite, depth, -20000000, 20000000, depth))
+        f, t, _ = self.saved_moved
+        _board = Board()
+
+        return "{}{}".format(ChessUtils.positionToChessCoordinates(f), ChessUtils.positionToChessCoordinates(t))

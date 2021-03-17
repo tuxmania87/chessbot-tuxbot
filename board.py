@@ -59,29 +59,5 @@ class Board:
 
 
 
-    def positionToChessCoordinates(self, position):
 
-        x, y = self.positionToCoordinages(position)
-
-        return "{}{}".format(self.cols[x],y+1)
-
-    def ChessCoordinatesToPosition(self, f):
-
-        x = f[0]
-        y = int(f[1])
-
-
-        x2 = int(self.cols.index(x))
-
-        print(x2, y)
-
-        return (y - 1) * 8 + (x2 - 1) + 1
-
-
-
-
-
-    def positionToCoordinages(self, position):
-
-        return position % 8, position // 8
 

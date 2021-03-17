@@ -1,5 +1,5 @@
 import random
-from board import Board
+from board2 import Board2
 
 class HashEntry:
 
@@ -31,6 +31,35 @@ class ChessUtils:
 
     }
 
+
+    cols = ["a", "b", "c", "d", "e", "f", "g", "h"]
+
+    @staticmethod
+    def positionToChessCoordinates(position):
+
+        x, y = ChessUtils.positionToCoordinages(position)
+
+        return "{}{}".format(ChessUtils.cols[x],y+1)
+
+    @staticmethod
+    def ChessCoordinatesToPosition(f):
+
+        x = f[0]
+        y = int(f[1])
+
+
+        x2 = int(ChessUtils.cols.index(x))
+
+        print(x2, y)
+
+        return (y - 1) * 8 + (x2 - 1) + 1
+
+    @staticmethod
+    def positionToCoordinages(position):
+
+        return position % 8, position // 8
+
+
     def random_bitstring(self):
         return random.randint(0, 2 ** 64 - 1)
 
@@ -59,6 +88,34 @@ class ChessUtils:
             if board[i] != '':
 
                 j = self.hash_lookup_pieces[board[i]] -1
+
+                h = h ^ table[i][j]
+
+        return h
+
+
+    def get_board_hash_board2(self, board):
+        '''
+        constant indices
+        white_pawn := 1
+        white_rook := 2
+        # etc.
+        black_king := 12
+
+        '''
+
+
+
+        h = 0
+        for i in range(64):
+            if board.piece[i] != Board2.EMPTY:
+
+
+                if board.color[i] == Board2.DARK:
+                    j = board.piece[i] * 2
+                else:
+                    j = board.piece[i] * 2 +1
+
 
                 h = h ^ table[i][j]
 
