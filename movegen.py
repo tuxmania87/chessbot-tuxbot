@@ -206,12 +206,12 @@ class MovementGenerator:
         #_tstart = time.time_ns()
         sum = 0
 
-        val = {"k": 200, "q": 9, "r":5, "b": 3, "n":3, "p": 1}
+        #val = {"k": 200, "q": 9, "r":5, "b": 3, "n":3, "p": 1}
 
         for pos, _piece in board.piece_map().items():
             piece = str(_piece)
             #sum += val[piece.lower()] * (-1 if piece.islower() else 1)
-            sum += Piece_Square_Tables.get_piece_value(piece, pos ) * (-1 if piece.islower() else 1)
+            sum += int(Piece_Square_Tables.get_piece_value(piece, pos) /10 ) * (-1 if piece.islower() else 1)
 
         if board.turn == chess.WHITE:
             num_1 = board.legal_moves.count()
@@ -230,7 +230,7 @@ class MovementGenerator:
         if board.is_check():
             mobility = 0
 
-        sum += 0.1 * mobility
+        #sum += 0.1 * mobility
         '''
         
 
