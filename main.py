@@ -1,68 +1,43 @@
-import board
+import chess
 import chessutil
-import random
 import movegen
-import board2
-
-b = board.Board()
-c = chessutil.ChessUtils()
-
-
-pos = 28
-
-
-
-
-#b.board = [i for i in range(64)]
-#b.renderBoard()
-
-#b.board[pos] = 'N'
-
-#moves = c.getAllPieceMoves(b.board, pos)
-#moves = c.getAllPlayerMoves(b.board, True)
-#b.renderBoard(highlights=moves)
-
-
-
 import cProfile
+board = chess.Board()
 
 
 
-
-pr = cProfile.Profile()
-pr.enable()
-
-b2 = board2.Board2()
+print(board)
 
 
+c = chessutil.ChessUtils()
 mg = movegen.MovementGenerator()
-print(mg.min_max_eval_board2(b2))
-
-
-#best_move = mg.get_next_move_alpha_beta(b, True, 3)
-best_move = mg.get_next_move_neg_max_board2(b2, True, 4)
-print(best_move)
-
-mmove = (chessutil.ChessUtils.ChessCoordinatesToPosition(best_move[:2]), chessutil.ChessUtils.ChessCoordinatesToPosition(best_move[2:]))
-
-#b2.do_move(mmove)
-
-#best_move = mg.get_next_move_neg_max_board2(b2, True, 3)
-print(best_move)
 
 
 
-pr.disable()
+
+
+board.set_fen("rn1q1rk1/pp3ppp/2pb1p2/8/3P2b1/2PB4/PP2NPPP/R1BQK2R w KQ - 5 9")
+val = mg.min_max_eval_pychess(board)
+print(val)
+
+#pr = cProfile.Profile()
+#pr.enable()
+
+
+
+
+mg.get_next_move_MTDF(board, True, 4)
+
+
+
+#pr.disable()
 # after your program ends
-pr.print_stats(sort="calls")
-
-print(mg.saved_moved)
+#pr.print_stats(sort="calls")
 
 
 
-
-
-
+#mg.get_next_move_pv_search_board1(board, False, 4)
+print(mg.saved_moved, board.turn == chess.BLACK)
 
 
 

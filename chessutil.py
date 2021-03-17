@@ -11,6 +11,120 @@ class HashEntry:
         self.upper = 0
         self.lower = 0
 
+class Piece_Square_Tables:
+
+    pawnEvalWhite =     [
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0,
+        1.0, 1.0, 2.0, 3.0, 3.0, 2.0, 1.0, 1.0,
+        0.5, 0.5, 1.0, 2.5, 2.5, 1.0, 0.5, 0.5,
+        0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0,
+        0.5, -0.5, -1.0, 0.0, 0.0, -1.0, -0.5, 0.5,
+        0.5, 1.0, 1.0, -2.0, -2.0, 1.0, 1.0, 0.5,
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+    ];
+
+
+    pawnEvalBlack = pawnEvalWhite.copy();
+    pawnEvalBlack.reverse()
+
+    knightEval =[
+    -5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0,
+    -4.0, -2.0, 0.0, 0.0, 0.0, 0.0, -2.0, -4.0,
+    -3.0, 0.0, 1.0, 1.5, 1.5, 1.0, 0.0, -3.0,
+    -3.0, 0.5, 1.5, 2.0, 2.0, 1.5, 0.5, -3.0,
+    -3.0, 0.0, 1.5, 2.0, 2.0, 1.5, 0.0, -3.0,
+    -3.0, 0.5, 1.0, 1.5, 1.5, 1.0, 0.5, -3.0,
+    -4.0, -2.0, 0.0, 0.5, 0.5, 0.0, -2.0, -4.0,
+    -5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0
+];
+
+
+    bishopEvalWhite = [
+    -2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0,
+    -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0,
+    -1.0, 0.0, 0.5, 1.0, 1.0, 0.5, 0.0, -1.0,
+    -1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 0.5, -1.0,
+    -1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, -1.0,
+    -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
+    -1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, -1.0,
+    -2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0
+];
+
+
+    bishopEvalBlack = bishopEvalWhite.copy()
+    bishopEvalBlack.reverse()
+
+
+    rookEvalWhite = [
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5,
+    -0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5,
+    -0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5,
+    -0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5,
+    -0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5,
+    -0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5,
+    0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0
+];
+
+    rookEvalBlack = rookEvalWhite.copy()
+    rookEvalBlack.reverse()
+
+    evalQueen = [
+    -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0,
+    -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0,
+    -1.0, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0, -1.0,
+    -0.5, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0, -0.5,
+    0.0, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0, -0.5,
+    -1.0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, -1.0,
+    -1.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, -1.0,
+    -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0
+];
+
+    kingEvalWhite = [
+
+    -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0,
+    -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0,
+    -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0,
+    -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0,
+    -2.0, -3.0, -3.0, -4.0, -4.0, -3.0, -3.0, -2.0,
+    -1.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -1.0,
+    2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0,
+    2.0, 3.0, 1.0, 0.0, 0.0, 1.0, 3.0, 2.0
+];
+
+    kingEvalBlack = kingEvalWhite.copy()
+    kingEvalBlack.reverse()
+
+    @staticmethod
+    def get_piece_value(piece, position):
+
+        if piece == 'p':
+            return 10 + Piece_Square_Tables.pawnEvalBlack[position]
+        if piece == 'P':
+            return 10 + Piece_Square_Tables.pawnEvalWhite[position]
+        if piece == 'n':
+            return 30 + Piece_Square_Tables.knightEval[position]
+        if piece == 'N':
+            return 30 + Piece_Square_Tables.knightEval[position]
+        if piece == 'b':
+            return 31 + Piece_Square_Tables.bishopEvalBlack[position]
+        if piece == 'B':
+            return 31 + Piece_Square_Tables.bishopEvalWhite[position]
+        if piece == 'q':
+            return 90 + Piece_Square_Tables.evalQueen[position]
+        if piece == 'Q':
+            return 90 + Piece_Square_Tables.evalQueen[position]
+        if piece == 'k':
+            return 900 + Piece_Square_Tables.kingEvalBlack[position]
+        if piece == 'K':
+            return 900 + Piece_Square_Tables.kingEvalWhite[position]
+        if piece == 'r':
+            return 50 + Piece_Square_Tables.rookEvalBlack[position]
+        if piece == 'R':
+            return 50 + Piece_Square_Tables.rookEvalWhite[position]
+
+
 
 class ChessUtils:
     table = None
@@ -70,6 +184,14 @@ class ChessUtils:
             table[i] = [[] for _ in range(12)]
             for j in range(12):
                 table[i][j] = self.random_bitstring()
+
+    def get_board_hash_pychess(self, board):
+        h = 0
+        for ke, va in board.piece_map().items():
+            j = self.hash_lookup_pieces[str(va)] - 1
+            h = h ^ table[ke][j]
+
+        return h
 
     def get_board_hash(self, board):
         '''
