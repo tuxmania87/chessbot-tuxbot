@@ -21,6 +21,35 @@ class MovementGenerator:
         self.results = []
         self.nodes = 0
         self.pv_table = {}
+        self.killers = {0: {}, 1: {}}
+
+        for i in range(0, 400):
+            self.killers[0][i] = None
+            self.killers[1][i] = None
+
+        self.search_history = {}
+
+        for i in range(0, 64):
+            self.search_history[i] = {}
+            for ii in range(0, 64):
+                self.search_history[i][ii] = 0
+
+        self.Mvv_Lva_Victim_scores = {
+            "p" : 100,
+            "n" : 200,
+            "b" : 300,
+            "r" : 400,
+            "q" : 500,
+            "k" : 600
+        }
+
+        # init mvv lva
+        self.Mvv_Lva_Scores = {}
+        for attacker in self.Mvv_Lva_Victim_scores.keys():
+            self.Mvv_Lva_Scores[attacker] = {}
+            for victim in self.Mvv_Lva_Victim_scores.keys():
+                self.Mvv_Lva_Scores[attacker][victim] = int(self.Mvv_Lva_Victim_scores[victim] + 6  - (self.Mvv_Lva_Victim_scores[attacker] / 100)) + 1000000
+
 
 
     def get_opening_move(self, board):
@@ -188,7 +217,95 @@ class MovementGenerator:
         if position_hash not in self.pv_table:
             return None
 
-        return self.pv_table[position_hash]
+        return self.pv_table[position_hash][turn]
+
+
+    def pick_next_move(self, move_dict):
+        best_key = None
+        best_value = -1
+
+        if len(move_dict.keys()) == 0:
+            return None
+
+        for k, v in move_dict.items():
+            if v > best_value:
+                best_value = v
+                best_key = k
+
+        move_dict.remove(best_key)
+
+        return best_key
+
+    def quiescence(self, board, a, b):
+        old_a = a
+        best_move = None
+
+        h = self.cu.get_board_hash_pychess(board)
+        pv_move = self.get_pvline(h, board.turn)
+
+        self.nodes += 1
+
+        if board.can_claim_draw():
+            return 0
+
+        score = self.min_max_eval_pychess(board)
+
+        if score >= b:
+            return b
+
+        if score > a:
+            a = score
+
+        unscored_moves = board.legal_moves
+        scored_moves = {}
+
+        # score moves
+        ## by capturing
+
+        for move in unscored_moves:
+
+            if pv_move is not None and move == pv_move:
+                scored_moves[move] = 20000000
+                continue
+
+            ## all non captures are at the end of the list
+            if board.is_capture(move):
+                ## all captures have to be scored and thus sorted
+                attacker = board.piece_at(move.from_square).symbol().lower()
+                try:
+                    victim = board.piece_at(move.to_square).symbol().lower()
+                except:
+                    victim = 'p'
+
+                scored_moves[move] = self.Mvv_Lva_Scores[attacker][victim]
+
+        ordered_move_list = sorted(scored_moves, key=scored_moves.get)
+        ordered_move_list.reverse()
+
+        for move in ordered_move_list:
+
+            board.push(move)
+            move_score = -1 * self.quiescence(board, -b, -a)
+            board.pop()
+
+            if move_score > a:
+                if move_score >= b:
+
+                    return b
+                a = move_score
+                best_move = move
+
+
+        if a != old_a:
+            # debug
+            # print(f"beat alpha on {depth} for move {str(move)} and score {move_score}")
+
+            # self.pv_line[depth] = str(best_move)
+            self.store_pvline(h, best_move, board.turn)
+
+
+
+        return a
 
 
     def alpha_beta(self, board, depth, a, b, maxd):
@@ -200,15 +317,60 @@ class MovementGenerator:
         # get hash of current position
         h = self.cu.get_board_hash_pychess(board)
 
+        pv_move = self.get_pvline(h, board.turn)
+
+
+
         self.nodes += 1
 
         if depth == 0:
-            return MovementGenerator.min_max_eval_pychess(board)
+            #return MovementGenerator.min_max_eval_pychess(board)
+            return self.quiescence(board, a, b)
 
         if board.can_claim_draw():
             return 0
 
-        for move in board.legal_moves:
+
+        unscored_moves = board.legal_moves
+        scored_moves = {}
+
+        # score moves
+        ## by capturing
+
+        for move in unscored_moves:
+
+            if pv_move is not None and move == pv_move:
+                scored_moves[move] = 20000000
+                continue
+
+
+            ## all non captures are at the end of the list
+            if not board.is_capture(move):
+
+                ### check if non capture is killer move 1st order
+                if self.killers[0][board.ply()] == move:
+                    scored_moves[move] = 900000
+                elif self.killers[0][board.ply()] == move:
+                    scored_moves[move] = 800000
+                else:
+                    scored_moves[move] = self.search_history[move.from_square][move.to_square]
+
+
+            else:
+                ## all captures have to be scored and thus sorted
+                attacker = board.piece_at(move.from_square).symbol().lower()
+                try:
+                    victim = board.piece_at(move.to_square).symbol().lower()
+                except:
+                    victim = 'p'
+
+                scored_moves[move] = self.Mvv_Lva_Scores[attacker][victim]
+
+
+        ordered_move_list = sorted(scored_moves, key=scored_moves.get)
+        ordered_move_list.reverse()
+
+        for move in ordered_move_list:
             board.push(move)
             move_score = -1 * self.alpha_beta(board, depth-1, -b, -a, maxd)
             board.pop()
@@ -217,9 +379,19 @@ class MovementGenerator:
 
             if move_score > a:
                 if move_score >= b:
+
+                    # killer moves
+                    if not board.is_capture(move):
+                        self.killers[1][board.ply()] = self.killers[1][board.ply()]
+                        self.killers[0][board.ply()] = move
+
                     return b
                 a = move_score
                 best_move = move
+
+                # killer moves
+                if not board.is_capture(move):
+                    self.search_history[best_move.from_square][best_move.to_square] += depth
 
                 if depth == maxd:
                     self.saved_moved = move
@@ -252,29 +424,30 @@ class MovementGenerator:
 
         return pv_line
 
+    def get_next_move_alpha_beta_iterative_2(self, board, depth, max_time):
 
+        best_move = None
 
-
-
-    def get_next_move_alpha_beta(self, board, depth):
+        #clear
         self.saved_moved = None
         self.nodes = 0
-        _start = time.time()
 
-        self.alpha_beta(board, depth, -20000000, 200000000, depth)
+        entry_time = time.time()
 
-        print(f"Search with depth {depth} ended searching {self.nodes} Nodes. Move: {self.saved_moved} Time: {time.time()-_start}")
+        for cd in range(depth):
+            current_depth = cd + 1
 
-        print(self.retrieve_pvline(board))
+            _start = time.time()
 
-        return self.saved_moved
+            best_score = self.alpha_beta(board, current_depth, -20000000, 200000000, current_depth)
 
+            pv_moves = self.retrieve_pvline(board)
+            best_move = pv_moves[0]
 
-    def get_next_move_alpha_beta_iterative(self, board, depth):
+            print(f"Depth {current_depth} Nodes: {self.nodes} Move: {best_move} Time: {time.time() - _start} Score: {best_score}")
+            print(pv_moves)
 
-        first_guess = None
-        for d in range(depth):
-            first_guess = self.get_next_move_alpha_beta(board, d)
+            if time.time() - entry_time > max_time:
+                break
 
-        return first_guess
-
+        return best_move

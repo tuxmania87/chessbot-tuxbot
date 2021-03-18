@@ -28,8 +28,9 @@ def playGame(id):
 
     c = ChessUtils()
     m = MovementGenerator()
-    doMove = m.get_next_move_MTDF
+    doMove = m.get_next_move_alpha_beta_iterative_2
     designated_depth = 100
+    designated_time = 4
 
     amIwhite = False
 
@@ -50,7 +51,7 @@ def playGame(id):
                     amIwhite = True
 
                     #chessMove = m.getRandomMove(b.board, amIwhite)
-                    chessMove = doMove(b, amIwhite, designated_depth)
+                    chessMove = doMove(b, designated_depth, designated_time)
                     if chessMove is None:
                         print("end of game")
                         exit(0)
@@ -83,7 +84,7 @@ def playGame(id):
                     #chessMove = m.getRandomMove(b.board, amIwhite)
 
 
-                    chessMove = doMove(b, amIwhite, designated_depth)
+                    chessMove = doMove(b, designated_depth, designated_time)
 
 
 

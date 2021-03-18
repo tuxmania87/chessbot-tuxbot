@@ -28,7 +28,7 @@ print(val)
 
 
 
-themove = mg.get_next_move_alpha_beta_iterative(board, 5)
+themove = mg.get_next_move_alpha_beta_iterative_2(board, 5, 10)
 
 
 
