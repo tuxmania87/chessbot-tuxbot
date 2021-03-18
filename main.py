@@ -16,9 +16,11 @@ mg = movegen.MovementGenerator()
 
 
 
-board.set_fen("rn1q1rk1/pp3ppp/2pb1p2/8/3P2b1/2PB4/PP2NPPP/R1BQK2R w KQ - 5 9")
+board.set_fen("rn1qkb1r/ppp1pppp/8/3p1b1n/3P4/2N2PB1/PPP1P1PP/R2QKBNR b KQkq - 2 5")
 val = mg.min_max_eval_pychess(board)
 print(val)
+
+
 
 #pr = cProfile.Profile()
 #pr.enable()
@@ -26,7 +28,7 @@ print(val)
 
 
 
-mg.get_next_move_MTDF(board, True, 4)
+themove = mg.get_next_move_alpha_beta_iterative(board, 5)
 
 
 
@@ -37,7 +39,7 @@ mg.get_next_move_MTDF(board, True, 4)
 
 
 #mg.get_next_move_pv_search_board1(board, False, 4)
-print(mg.saved_moved, board.turn == chess.BLACK)
+print(themove, board.turn == chess.BLACK)
 
 
 
