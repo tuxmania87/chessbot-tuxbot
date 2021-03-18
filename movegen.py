@@ -308,7 +308,19 @@ class MovementGenerator:
         return a
 
 
-    def alpha_beta(self, board, depth, a, b, maxd):
+    def alpha_beta(self, board, depth, a, b, maxd, null_move):
+        move_score = -20000000
+
+        # check for null mive
+        if null_move and not board.is_check() and board.ply() > 0 and depth >= 3:
+            board.push(chess.Move.null())
+            move_score = -1 * self.alpha_beta(board, depth - 3, -b, -b + 1, maxd, False)
+            board.pop()
+
+            if move_score >= b:
+                return b
+
+
         move_score = -20000000
 
         old_a = a
@@ -323,7 +335,7 @@ class MovementGenerator:
 
         self.nodes += 1
 
-        if depth == 0:
+        if depth <= 0:
             #return MovementGenerator.min_max_eval_pychess(board)
             return self.quiescence(board, a, b)
 
@@ -372,7 +384,7 @@ class MovementGenerator:
 
         for move in ordered_move_list:
             board.push(move)
-            move_score = -1 * self.alpha_beta(board, depth-1, -b, -a, maxd)
+            move_score = -1 * self.alpha_beta(board, depth-1, -b, -a, maxd, null_move)
             board.pop()
 
 
@@ -439,7 +451,7 @@ class MovementGenerator:
 
             _start = time.time()
 
-            best_score = self.alpha_beta(board, current_depth, -20000000, 200000000, current_depth)
+            best_score = self.alpha_beta(board, current_depth, -20000000, 200000000, current_depth, True)
 
             pv_moves = self.retrieve_pvline(board)
             best_move = pv_moves[0]
