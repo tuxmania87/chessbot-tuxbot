@@ -14,11 +14,10 @@ class MovementGenerator:
 
     hashes = {}
 
-    def __init__(self):
+    INFINITY = 137000000
 
-        self.cu = ChessUtils()
-        self.saved_moved = ""
-        self.results = []
+
+    def clear_search_params(self):
         self.nodes = 0
         self.pv_table = {}
         self.killers = {0: {}, 1: {}}
@@ -33,6 +32,16 @@ class MovementGenerator:
             self.search_history[i] = {}
             for ii in range(0, 64):
                 self.search_history[i][ii] = 0
+
+    def __init__(self):
+
+        self.cu = ChessUtils()
+        self.saved_moved = ""
+        self.results = []
+
+
+        self.clear_search_params()
+
 
         self.Mvv_Lva_Victim_scores = {
             "p" : 100,
@@ -70,6 +79,10 @@ class MovementGenerator:
 
         #_tstart = time.time_ns()
         sum = 0
+
+        if board.is_checkmate():
+            #print(board.move_stack)
+            return -1 * (MovementGenerator.INFINITY - board.ply())
 
         val = {"k": 200, "q": 9, "r":5, "b": 3, "n":3, "p": 1}
 
@@ -250,6 +263,7 @@ class MovementGenerator:
 
         score = self.min_max_eval_pychess(board)
 
+
         if score >= b:
             return b
 
@@ -309,10 +323,10 @@ class MovementGenerator:
 
 
     def alpha_beta(self, board, depth, a, b, maxd, null_move):
-        move_score = -20000000
+        move_score = -MovementGenerator.INFINITY
 
         # check for null mive
-        if null_move and not board.is_check() and board.ply() > 0 and depth >= 3:
+        if null_move and not board.is_check() and board.ply() > 0 and depth >= 3:# and 1 == 2:
             board.push(chess.Move.null())
             move_score = -1 * self.alpha_beta(board, depth - 3, -b, -b + 1, maxd, False)
             board.pop()
@@ -321,7 +335,7 @@ class MovementGenerator:
                 return b
 
 
-        move_score = -20000000
+        move_score = -MovementGenerator.INFINITY
 
         old_a = a
         best_move = None
@@ -335,7 +349,7 @@ class MovementGenerator:
 
         self.nodes += 1
 
-        if depth <= 0:
+        if depth <= 0 or board.legal_moves.count() == 0:
             #return MovementGenerator.min_max_eval_pychess(board)
             return self.quiescence(board, a, b)
 
@@ -417,7 +431,6 @@ class MovementGenerator:
 
         return a
 
-
     def retrieve_pvline(self, board):
 
         pv_line = list()
@@ -436,30 +449,65 @@ class MovementGenerator:
 
         return pv_line
 
+    def get_pv_line_san(self, board, line):
+        san_list = list()
+        b = board.copy()
+
+        for move in line:
+            san_list.append(b.san(move))
+            b.push(move)
+
+        return san_list
+
     def get_next_move_alpha_beta_iterative_2(self, board, depth, max_time):
 
         best_move = None
 
         #clear
         self.saved_moved = None
-        self.nodes = 0
+        self.clear_search_params()
 
         entry_time = time.time()
 
-        for cd in range(depth):
+        for cd in range(1, depth):
+            self.nodes = 0
             current_depth = cd + 1
 
             _start = time.time()
 
-            best_score = self.alpha_beta(board, current_depth, -20000000, 200000000, current_depth, True)
+            best_score = self.alpha_beta(board, current_depth, -MovementGenerator.INFINITY, MovementGenerator.INFINITY, current_depth, True)
 
             pv_moves = self.retrieve_pvline(board)
-            best_move = pv_moves[0]
+            if len(pv_moves) > 0:
+                best_move = pv_moves[0]
+            else:
+                # make sure we run at least once more
+                if cd == depth-1:
+                    # we are at last iteration and need to run once more
+                    print("extra run")
+                    best_sore = self.alpha_beta(board, cd+1, -MovementGenerator.INFINITY, MovementGenerator.INFINITY,
+                                    cd+1, True)
 
-            print(f"Depth {current_depth} Nodes: {self.nodes} Move: {best_move} Time: {time.time() - _start} Score: {best_score}")
-            print(pv_moves)
+                    print(f"XTRA: Depth {cd+1} Nodes: {self.nodes} Move: {board.san(best_move)} Time: {time.time() - _start} Score: {best_score}")
+
+            print(f"Depth {current_depth} Nodes: {self.nodes} Move: {board.san(best_move)} Time: {time.time() - _start} Score: {best_score}")
+            print(self.get_pv_line_san(board,pv_moves))
 
             if time.time() - entry_time > max_time:
                 break
 
+            if best_score >= MovementGenerator.INFINITY - 100:
+                # found checkmate
+                return best_move
+
         return best_move
+
+
+    def get_next_move_tuxfish(self, board, depth, max_time):
+
+        opening_move = self.get_opening_move(board)
+
+        if opening_move is not None:
+            return opening_move
+
+        return self.get_next_move_alpha_beta_iterative_2(board, depth, max_time)

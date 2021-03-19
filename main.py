@@ -16,10 +16,36 @@ mg = movegen.MovementGenerator()
 
 
 
-board.set_fen("rn1qkb1r/ppp1pppp/8/3p1b1n/3P4/2N2PB1/PPP1P1PP/R2QKBNR b KQkq - 2 5")
+#board.set_fen("rn1qkb1r/ppp1pppp/8/3p1b1n/3P4/2N2PB1/PPP1P1PP/R2QKBNR b KQkq - 2 5")
+#board.set_fen("r5rk/5p1p/5R2/4B3/8/8/7P/7K w") # mate in 3
+
+#board.set_fen("8/8/8/qn6/kn6/1n6/1KP5/8 w - -") # mate in 1
+#board.set_fen("k1K5/1q6/2P3qq/q7/8/8/8/8 w - -") # mate in 3
+#board.set_fen("k1K5/1q6/2P3qq/q7/8/8/8/8 w - -") # mate in 3
+
+#board.set_fen("2k3q1/7P/2K5/8/5q1q/8/8/5q2 w - -") # mate in 10
+
+#board.set_fen("r2r1n2/pp2bk2/2p1p2p/3q4/3PN1QP/2P3R1/P4PP1/5RK1 w - - 0 1") # mate in 4
+
+
+board.set_fen("8/6Q1/3pp3/3k1p2/B4b2/2P2P2/PPK2P1P/8 w - - 3 29")
+
 val = mg.min_max_eval_pychess(board)
 print(val)
 
+
+## DEBUG
+'''
+__b = board.copy()
+__b.push_san("Ra6")
+__b.push_san("f6")
+__b.push_san("Bxf6")
+__b.push_san("Rg7")
+
+print("Hash ",c.get_board_hash_pychess(__b))
+'''
+
+## EO DEBUG
 
 
 #pr = cProfile.Profile()
@@ -28,7 +54,10 @@ print(val)
 
 
 
-themove = mg.get_next_move_alpha_beta_iterative_2(board, 5, 10)
+themove = mg.get_next_move_tuxfish(board, 15, 6)
+#themove = mg.get_next_move_alpha_beta_static_2(board, 6, 100)
+
+
 
 
 
@@ -39,7 +68,7 @@ themove = mg.get_next_move_alpha_beta_iterative_2(board, 5, 10)
 
 
 #mg.get_next_move_pv_search_board1(board, False, 4)
-print(themove, board.turn == chess.BLACK)
+
 
 
 
