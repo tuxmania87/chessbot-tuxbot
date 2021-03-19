@@ -5,7 +5,7 @@ from chessutil import ChessUtils
 import threading
 import random
 from movegen import MovementGenerator
-
+import time
 
 
 
@@ -22,8 +22,21 @@ class Game:
         self.play_time = play_time
         self.increment = increment
 
-
+        self.used_time = 0
+        self.moves = 0
         self.playGame()
+
+    def doMoveWrapper(self, b, designated_depth, time_per_move):
+
+        # calculate remaining time
+        remaining = self.play_time - (self.used_time - self.moves * self.increment)
+
+        print(f"Remaining {remaining}")
+
+        _s = time.time()
+        move = self.doMove(b, designated_depth, 2 if remaining < 60 else time_per_move)
+        self.used_time += time.time() - _s
+        self.moves += 1
 
 
     def playGame(self):
@@ -39,7 +52,7 @@ class Game:
 
         c = ChessUtils()
         m = MovementGenerator()
-        doMove = m.get_next_move_tuxfish
+        self.doMove = m.get_next_move_tuxfish
         designated_depth = 6
 
         # calculate max time per move
@@ -79,7 +92,13 @@ class Game:
                         amIwhite = True
 
                         #chessMove = m.getRandomMove(b.board, amIwhite)
-                        chessMove = doMove(b, designated_depth, time_per_move)
+
+
+
+                        _s = time.time()
+                        chessMove = self.doMoveWrapper(b, designated_depth, time_per_move)
+                        self.used_time += (time.time() - _s)
+
                         if chessMove is None:
                             print("end of game")
                             exit(0)
@@ -111,9 +130,9 @@ class Game:
                         # make own move
                         #chessMove = m.getRandomMove(b.board, amIwhite)
 
-
-                        chessMove = doMove(b, designated_depth, time_per_move)
-
+                        _s = time.time()
+                        chessMove = self.doMoveWrapper(b, designated_depth, time_per_move)
+                        self.used_time += (time.time() - _s)
 
 
                         if chessMove is None:
