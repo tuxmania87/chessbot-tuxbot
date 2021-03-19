@@ -16,10 +16,15 @@ class MovementGenerator:
 
     INFINITY = 137000000
 
+    INITIALIZED = False
+    pv_table = {}
+
+    USE_QUIESENCE = True
+
 
     def clear_search_params(self):
         self.nodes = 0
-        self.pv_table = {}
+        #self.pv_table = {}
         self.killers = {0: {}, 1: {}}
 
         for i in range(0, 400):
@@ -219,18 +224,14 @@ class MovementGenerator:
 
 
     def store_pvline(self, position_hash, move, turn):
-
-        if not position_hash in self.pv_table:
-            self.pv_table[position_hash] = {chess.WHITE: None, chess.BLACK: None}
-
-        self.pv_table[position_hash][turn] = move
+        MovementGenerator.pv_table[position_hash] = move
 
 
     def get_pvline(self, position_hash, turn):
-        if position_hash not in self.pv_table:
+        if position_hash not in MovementGenerator.pv_table:
             return None
 
-        return self.pv_table[position_hash][turn]
+        return MovementGenerator.pv_table[position_hash]
 
 
     def pick_next_move(self, move_dict):
@@ -253,7 +254,8 @@ class MovementGenerator:
         old_a = a
         best_move = None
 
-        h = self.cu.get_board_hash_pychess(board)
+        #h = self.cu.get_board_hash_pychess(board)
+        h = board.fen()
         pv_move = self.get_pvline(h, board.turn)
 
         self.nodes += 1
@@ -261,14 +263,16 @@ class MovementGenerator:
         if board.can_claim_draw():
             return 0
 
-        score = self.min_max_eval_pychess(board)
 
+        score = self.min_max_eval_pychess(board) if not board.is_check() else (-1 * (MovementGenerator.INFINITY - board.ply()))
 
         if score >= b:
             return b
 
         if score > a:
             a = score
+
+
 
         unscored_moves = board.legal_moves
         scored_moves = {}
@@ -282,6 +286,7 @@ class MovementGenerator:
                 scored_moves[move] = 20000000
                 continue
 
+
             ## all non captures are at the end of the list
             if board.is_capture(move):
                 ## all captures have to be scored and thus sorted
@@ -292,6 +297,9 @@ class MovementGenerator:
                     victim = 'p'
 
                 scored_moves[move] = self.Mvv_Lva_Scores[attacker][victim]
+
+            elif board.is_check():
+                scored_moves[move] = 0
 
         ordered_move_list = sorted(scored_moves, key=scored_moves.get)
         ordered_move_list.reverse()
@@ -317,7 +325,9 @@ class MovementGenerator:
             # self.pv_line[depth] = str(best_move)
             self.store_pvline(h, best_move, board.turn)
 
+        if board.is_check() and board.legal_moves.count() == 0:
 
+            return -1 * (MovementGenerator.INFINITY - board.ply())
 
         return a
 
@@ -326,7 +336,7 @@ class MovementGenerator:
         move_score = -MovementGenerator.INFINITY
 
         # check for null mive
-        if null_move and not board.is_check() and board.ply() > 0 and depth >= 3:# and 1 == 2:
+        if null_move and not board.is_check() and board.ply() > 0 and depth >= 3 and 1 == 2:
             board.push(chess.Move.null())
             move_score = -1 * self.alpha_beta(board, depth - 3, -b, -b + 1, maxd, False)
             board.pop()
@@ -341,7 +351,8 @@ class MovementGenerator:
         best_move = None
 
         # get hash of current position
-        h = self.cu.get_board_hash_pychess(board)
+        #h = self.cu.get_board_hash_pychess(board)
+        h = board.fen()
 
         pv_move = self.get_pvline(h, board.turn)
 
@@ -349,9 +360,15 @@ class MovementGenerator:
 
         self.nodes += 1
 
-        if depth <= 0 or board.legal_moves.count() == 0:
-            #return MovementGenerator.min_max_eval_pychess(board)
-            return self.quiescence(board, a, b)
+        if board.legal_moves.count() == 0:
+            return MovementGenerator.min_max_eval_pychess(board)
+
+        if depth <= 0:
+            if MovementGenerator.USE_QUIESENCE:
+                return self.quiescence(board, a, b)
+            else:
+                return MovementGenerator.min_max_eval_pychess(board)
+
 
         if board.can_claim_draw():
             return 0
@@ -429,6 +446,10 @@ class MovementGenerator:
             #self.pv_line[depth] = str(best_move)
             self.store_pvline(h, best_move, board.turn)
 
+            if (h != board.fen()):
+                print("Ohoh")
+
+
         return a
 
     def retrieve_pvline(self, board):
@@ -438,7 +459,8 @@ class MovementGenerator:
         _b = board.copy()
 
         for _ in range(10000):
-            h = self.cu.get_board_hash_pychess(_b)
+            #h = self.cu.get_board_hash_pychess(_b)
+            h = _b.fen()
             best_move = self.get_pvline(h, _b.turn)
 
             if best_move is not None:
@@ -448,6 +470,28 @@ class MovementGenerator:
                 break
 
         return pv_line
+
+    def retrieve_fenline(self, board):
+
+        fen_line = list()
+
+        _b = board.copy()
+
+        for _ in range(10000):
+            h = _b.fen()
+            best_move = None
+            try:
+                best_move = MovementGenerator.fen_pv[h]
+            except:
+                pass
+
+            if best_move is not None:
+                fen_line.append(best_move)
+                _b.push(best_move)
+            else:
+                break
+
+        return fen_line
 
     def get_pv_line_san(self, board, line):
         san_list = list()
@@ -491,7 +535,7 @@ class MovementGenerator:
                     print(f"XTRA: Depth {cd+1} Nodes: {self.nodes} Move: {board.san(best_move)} Time: {time.time() - _start} Score: {best_score}")
 
             print(f"Depth {current_depth} Nodes: {self.nodes} Move: {board.san(best_move)} Time: {time.time() - _start} Score: {best_score}")
-            print(self.get_pv_line_san(board,pv_moves))
+            print("PV LINE: ",self.get_pv_line_san(board,pv_moves))
 
             if time.time() - entry_time > max_time:
                 break

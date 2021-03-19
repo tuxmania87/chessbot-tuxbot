@@ -21,14 +21,13 @@ mg = movegen.MovementGenerator()
 
 #board.set_fen("8/8/8/qn6/kn6/1n6/1KP5/8 w - -") # mate in 1
 #board.set_fen("k1K5/1q6/2P3qq/q7/8/8/8/8 w - -") # mate in 3
-#board.set_fen("k1K5/1q6/2P3qq/q7/8/8/8/8 w - -") # mate in 3
 
 #board.set_fen("2k3q1/7P/2K5/8/5q1q/8/8/5q2 w - -") # mate in 10
 
-#board.set_fen("r2r1n2/pp2bk2/2p1p2p/3q4/3PN1QP/2P3R1/P4PP1/5RK1 w - - 0 1") # mate in 4
+board.set_fen("r2r1n2/pp2bk2/2p1p2p/3q4/3PN1QP/2P3R1/P4PP1/5RK1 w - - 0 1") # mate in 4
 
 
-board.set_fen("8/6Q1/3pp3/3k1p2/B4b2/2P2P2/PPK2P1P/8 w - - 3 29")
+#board.set_fen("8/6Q1/3pp3/3k1p2/B4b2/2P2P2/PPK2P1P/8 w - - 3 29")
 
 val = mg.min_max_eval_pychess(board)
 print(val)
@@ -54,7 +53,14 @@ print("Hash ",c.get_board_hash_pychess(__b))
 
 
 
-themove = mg.get_next_move_tuxfish(board, 15, 6)
+themove = mg.get_next_move_tuxfish(board, 10, 10000)
+
+
+#board.push_san("cxb7+")
+#themove = mg.get_next_move_tuxfish(board, 6, 10000)
+
+
+
 #themove = mg.get_next_move_alpha_beta_static_2(board, 6, 100)
 
 
