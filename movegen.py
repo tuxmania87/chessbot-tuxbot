@@ -1,12 +1,27 @@
 from board import Board
 from board2 import Board2
-from chessutil import ChessUtils, HashEntry, Piece_Square_Tables
+from chessutil import ChessUtils, Piece_Square_Tables
 import random
 import time
 import chess
 import chess.polyglot
 import threading
 import random
+
+
+class HashEntry:
+
+    NONE = 0
+    EXACT = 1
+    BETA = 2
+    ALPHA = 3
+
+    def __init__(self):
+        self.key = ""
+        self.move = None
+        self.score = 0
+        self.depth = 0
+        self.flag = HashEntry.NONE
 
 class MovementGenerator:
 
@@ -18,6 +33,8 @@ class MovementGenerator:
 
     INITIALIZED = False
     pv_table = {}
+
+    hash_table = {}
 
     USE_QUIESENCE = True
 
@@ -115,41 +132,41 @@ class MovementGenerator:
             sum += val[piece.lower()] * (-1 if piece.islower() else 1)
 
             if piece == "p":
-                sum -= Piece_Square_Tables.pawnEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 10
+                sum -= Piece_Square_Tables.pawnEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 100.
 
             elif piece == "n":
-                sum -= Piece_Square_Tables.knightEval[pos] / 10
+                sum -= Piece_Square_Tables.knightEval[Piece_Square_Tables.mirror_table[pos]] / 100
 
             elif piece == "b":
-                sum -= Piece_Square_Tables.bishopEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 10
-
-            elif piece == "q":
-                sum -= Piece_Square_Tables.evalQueen[pos] / 10
+                sum -= Piece_Square_Tables.bishopEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 100.
 
             elif piece == "k":
-                sum -= Piece_Square_Tables.kingEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 10
+                if board.ply() < 30:
+                    sum -= Piece_Square_Tables.kingEvalWhite_O[Piece_Square_Tables.mirror_table[pos]] / 100.
+                else:
+                    sum -= Piece_Square_Tables.kingEvalWhite_E[Piece_Square_Tables.mirror_table[pos]] / 100.
 
             elif piece == "r":
-                sum -= Piece_Square_Tables.rookEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 10
+                sum -= Piece_Square_Tables.rookEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 100.
 
             #white
             elif piece == "P":
-                sum += Piece_Square_Tables.pawnEvalWhite[pos] / 10
+                sum += Piece_Square_Tables.pawnEvalWhite[pos] / 100.
 
             elif piece == "N":
-                sum += Piece_Square_Tables.knightEval[pos] / 10
+                sum += Piece_Square_Tables.knightEval[pos] / 100.
 
             elif piece == "B":
-                sum += Piece_Square_Tables.bishopEvalWhite[pos] / 10
-
-            elif piece == "Q":
-                sum += Piece_Square_Tables.evalQueen[pos] / 10
+                sum += Piece_Square_Tables.bishopEvalWhite[pos] / 100.
 
             elif piece == "K":
-                sum += Piece_Square_Tables.kingEvalWhite[pos] / 10
+                if board.ply() < 30:
+                    sum += Piece_Square_Tables.kingEvalWhite_O[pos] / 100.
+                else:
+                    sum += Piece_Square_Tables.kingEvalWhite_E[pos] / 100.
 
             elif piece == "R":
-                sum += Piece_Square_Tables.rookEvalWhite[pos] / 10
+                sum += Piece_Square_Tables.rookEvalWhite[pos] / 100.
 
         # add deviations of square maps
 
@@ -442,6 +459,26 @@ class MovementGenerator:
 
         return a
 
+    def store_hash(self, pos, move, score, flag, depth):
+        he = HashEntry()
+        he.key = pos
+        he.move = move
+        he.score = score
+        he.flag = flag
+        he.depth = depth
+
+        MovementGenerator.hash_table[pos] = he
+
+
+    def get_hash(self, pos):
+
+        if pos in MovementGenerator.hash_table:
+            return MovementGenerator.hash_table[pos]
+
+        return None
+
+
+
 
     def alpha_beta(self, board, depth, a, b, maxd, null_move):
         move_score = -MovementGenerator.INFINITY
@@ -455,7 +492,7 @@ class MovementGenerator:
             if move_score >= b:
                 return b
 
-
+        best_score = -MovementGenerator.INFINITY
         move_score = -MovementGenerator.INFINITY
 
         old_a = a
@@ -465,7 +502,20 @@ class MovementGenerator:
         #h = self.cu.get_board_hash_pychess(board)
         h = board.fen()
 
-        pv_move = self.get_pvline(h, board.turn)
+        #pv_move = self.get_pvline(h, board.turn) depc
+
+        hash_entry = self.get_hash(h)
+        if hash_entry is not None:
+            if hash_entry.depth >= depth:
+                if hash_entry.flag == HashEntry.EXACT:
+                    return hash_entry.score
+                elif hash_entry.flag == HashEntry.ALPHA and hash_entry.score <= a:
+                    return a
+                elif hash_entry.flag == HashEntry.BETA and hash_entry.score >= b:
+                    return b
+
+
+
 
 
 
@@ -492,10 +542,6 @@ class MovementGenerator:
         ## by capturing
 
         for move in unscored_moves:
-
-            if pv_move is not None and move == pv_move:
-                scored_moves[move] = 20000000
-                continue
 
 
             ## all non captures are at the end of the list
@@ -534,41 +580,47 @@ class MovementGenerator:
             move_score = -1 * self.alpha_beta(board, depth-1, -b, -a, maxd, null_move)
             board.pop()
 
+            if move_score > best_score:
+                best_score = move_score
+                best_move = move
 
+                if move_score > a:
+                    if move_score >= b:
 
-            if move_score > a:
-                if move_score >= b:
+                        if legal == 1:
+                            self.fhf += 1
 
-                    if legal == 1:
-                        self.fhf += 1
+                        self.fh += 1
 
-                    self.fh += 1
+                        # killer moves
+                        if not board.is_capture(move):
+                            self.killers[1][board.ply()] = self.killers[1][board.ply()]
+                            self.killers[0][board.ply()] = move
+
+                        # STORE HASH ENTRY pos, betaMove, beta, BETA, depth
+                        self.store_hash(board.fen(), best_move, b, HashEntry.BETA, depth)
+
+                        return b
+                    a = move_score
+                    best_move = move
 
                     # killer moves
                     if not board.is_capture(move):
-                        self.killers[1][board.ply()] = self.killers[1][board.ply()]
-                        self.killers[0][board.ply()] = move
+                        self.search_history[best_move.from_square][best_move.to_square] += depth
 
-                    return b
-                a = move_score
-                best_move = move
-
-                # killer moves
-                if not board.is_capture(move):
-                    self.search_history[best_move.from_square][best_move.to_square] += depth
-
-                if depth == maxd:
-                    self.saved_moved = move
 
         if a != old_a:
             # debug
             # print(f"beat alpha on {depth} for move {str(move)} and score {move_score}")
 
             #self.pv_line[depth] = str(best_move)
-            self.store_pvline(h, best_move, board.turn)
+            #self.store_pvline(h, best_move, board.turn)
+            # STORE HASH pos, bestmove, bestscore, exact, depth
+            self.store_hash(board.fen(), best_move, best_score, HashEntry.EXACT, depth)
+        else:
 
-            if (h != board.fen()):
-                print("Ohoh")
+            # STORE HASH pos, bestmove, alpha, ALPHA, depth
+            self.store_hash(board.fen(), best_move, a, HashEntry.ALPHA, depth)
 
 
         return a
@@ -582,37 +634,17 @@ class MovementGenerator:
         for _ in range(10000):
             #h = self.cu.get_board_hash_pychess(_b)
             h = _b.fen()
-            best_move = self.get_pvline(h, _b.turn)
+            hash_entry = self.get_hash(h)
 
-            if best_move is not None:
-                pv_line.append(best_move)
-                _b.push(best_move)
+
+
+            if hash_entry is not None and hash_entry.flag == HashEntry.EXACT:
+                pv_line.append(hash_entry.move)
+                _b.push(hash_entry.move)
             else:
                 break
 
         return pv_line
-
-    def retrieve_fenline(self, board):
-
-        fen_line = list()
-
-        _b = board.copy()
-
-        for _ in range(10000):
-            h = _b.fen()
-            best_move = None
-            try:
-                best_move = MovementGenerator.fen_pv[h]
-            except:
-                pass
-
-            if best_move is not None:
-                fen_line.append(best_move)
-                _b.push(best_move)
-            else:
-                break
-
-        return fen_line
 
     def get_pv_line_san(self, board, line):
         san_list = list()
