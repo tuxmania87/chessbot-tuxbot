@@ -175,7 +175,7 @@ class MovementGenerator:
         sum += 0.1 * mobility
 
 
-        return sum
+        return sum * (-1 if board.turn == chess.BLACK else 1)
 
 
     @staticmethod
@@ -350,7 +350,11 @@ class MovementGenerator:
 
         return best_key
 
-    def quiescence(self, board, a, b):
+    def quiescence(self, board, a, b, qdepth = 0):
+        #if qdepth > 0:
+        #    print(qdepth)
+
+
         old_a = a
         best_move = None
 
@@ -360,8 +364,8 @@ class MovementGenerator:
 
         self.nodes += 1
 
-        if board.can_claim_draw():
-            return 0
+        #if board.can_claim_draw():
+        #    return 0
 
 
         #score = self.min_max_eval_pychess(board) if not board.is_check() else (-1 * (MovementGenerator.INFINITY - board.ply()))
@@ -369,6 +373,12 @@ class MovementGenerator:
 
         if score >= b:
             return b
+
+        # delta prun
+        if score < a - 9:
+            return a
+
+
 
         if score > a:
             a = score
@@ -408,7 +418,7 @@ class MovementGenerator:
         for move in ordered_move_list:
 
             board.push(move)
-            move_score = -1 * self.quiescence(board, -b, -a)
+            move_score = -1 * self.quiescence(board, -b, -a, qdepth + 1)
             board.pop()
 
             if move_score > a:
@@ -471,8 +481,8 @@ class MovementGenerator:
                 return MovementGenerator.min_max_eval_pychess(board)
 
 
-        if board.can_claim_draw():
-            return 0
+        #if board.can_claim_draw():
+        #    return 0
 
 
         unscored_moves = board.legal_moves
@@ -514,8 +524,13 @@ class MovementGenerator:
         ordered_move_list = sorted(scored_moves, key=scored_moves.get)
         ordered_move_list.reverse()
 
+        legal = 0
+
         for move in ordered_move_list:
             board.push(move)
+
+            legal += 1
+
             move_score = -1 * self.alpha_beta(board, depth-1, -b, -a, maxd, null_move)
             board.pop()
 
@@ -523,6 +538,11 @@ class MovementGenerator:
 
             if move_score > a:
                 if move_score >= b:
+
+                    if legal == 1:
+                        self.fhf += 1
+
+                    self.fh += 1
 
                     # killer moves
                     if not board.is_capture(move):
@@ -616,6 +636,8 @@ class MovementGenerator:
 
         for cd in range(1, depth):
             self.nodes = 0
+            self.fh = 0
+            self.fhf = 0
             current_depth = cd + 1
 
             _start = time.time()
@@ -636,6 +658,7 @@ class MovementGenerator:
                     print(f"XTRA: Depth {cd+1} Nodes: {self.nodes} Move: {board.san(best_move)} Time: {time.time() - _start} Score: {best_score}")
 
             print(f"Depth {current_depth} Nodes: {self.nodes} Move: {board.san(best_move)} Time: {time.time() - _start} Score: {best_score}")
+            print(f"Move Ordering {self.fhf /max(self.fh,1)}")
             print("PV LINE: ",self.get_pv_line_san(board,pv_moves))
 
             if time.time() - entry_time > max_time:
