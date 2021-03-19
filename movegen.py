@@ -6,7 +6,7 @@ import time
 import chess
 import chess.polyglot
 import threading
-
+import random
 
 class MovementGenerator:
 
@@ -71,15 +71,115 @@ class MovementGenerator:
         max_weight = 0
         max_move = None
 
+        found_moves = {}
+
         with chess.polyglot.open_reader("Performance.bin") as reader:
             for entry in reader.find_all(board):
+
+                if not entry.weight in found_moves:
+                    found_moves[entry.weight] = []
+
+                found_moves[entry.weight].append(entry.move)
+
                 if entry.weight > max_weight:
                     max_weight = entry.weight
                     max_move = entry.move
-        return max_move
+
+        # shuffle out of best moves
+
+        if max_move is None:
+            return None
+
+        best_moves = found_moves[max_weight]
+
+        random.shuffle(best_moves)
+
+        return best_moves[0]
 
     @staticmethod
     def min_max_eval_pychess(board):
+        return MovementGenerator.min_max_eval_pychess_gen1(board)
+
+    @staticmethod
+    def min_max_eval_pychess_gen2(board):
+
+        if board.is_checkmate():
+            #print(board.move_stack)
+            return -1 * (MovementGenerator.INFINITY - board.ply())
+
+        sum = 0
+        val = {"k": 200, "q": 9, "r": 5, "b": 3, "n": 3, "p": 1}
+
+        for pos, _piece in board.piece_map().items():
+            piece = str(_piece)
+            sum += val[piece.lower()] * (-1 if piece.islower() else 1)
+
+            if piece == "p":
+                sum -= Piece_Square_Tables.pawnEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 10
+
+            elif piece == "n":
+                sum -= Piece_Square_Tables.knightEval[pos] / 10
+
+            elif piece == "b":
+                sum -= Piece_Square_Tables.bishopEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 10
+
+            elif piece == "q":
+                sum -= Piece_Square_Tables.evalQueen[pos] / 10
+
+            elif piece == "k":
+                sum -= Piece_Square_Tables.kingEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 10
+
+            elif piece == "r":
+                sum -= Piece_Square_Tables.rookEvalWhite[Piece_Square_Tables.mirror_table[pos]] / 10
+
+            #white
+            elif piece == "P":
+                sum += Piece_Square_Tables.pawnEvalWhite[pos] / 10
+
+            elif piece == "N":
+                sum += Piece_Square_Tables.knightEval[pos] / 10
+
+            elif piece == "B":
+                sum += Piece_Square_Tables.bishopEvalWhite[pos] / 10
+
+            elif piece == "Q":
+                sum += Piece_Square_Tables.evalQueen[pos] / 10
+
+            elif piece == "K":
+                sum += Piece_Square_Tables.kingEvalWhite[pos] / 10
+
+            elif piece == "R":
+                sum += Piece_Square_Tables.rookEvalWhite[pos] / 10
+
+        # add deviations of square maps
+
+
+        # add mobility
+        if board.turn == chess.WHITE:
+            num_1 = board.legal_moves.count()
+            board.push(chess.Move.null())
+            num_2 = board.legal_moves.count()
+            board.pop()
+            mobility = num_1 - num_2
+        else:
+            num_2 = board.legal_moves.count()
+            board.push(chess.Move.null())
+            num_1 = board.legal_moves.count()
+            board.pop()
+            mobility = num_1 - num_2
+
+            # if either side is in check, mobility is 0
+        if board.is_check():
+            mobility = 0
+
+        sum += 0.1 * mobility
+
+
+        return sum
+
+
+    @staticmethod
+    def min_max_eval_pychess_gen1(board):
 
 
         #_tstart = time.time_ns()
@@ -264,7 +364,8 @@ class MovementGenerator:
             return 0
 
 
-        score = self.min_max_eval_pychess(board) if not board.is_check() else (-1 * (MovementGenerator.INFINITY - board.ply()))
+        #score = self.min_max_eval_pychess(board) if not board.is_check() else (-1 * (MovementGenerator.INFINITY - board.ply()))
+        score = self.min_max_eval_pychess(board)
 
         if score >= b:
             return b
@@ -298,8 +399,8 @@ class MovementGenerator:
 
                 scored_moves[move] = self.Mvv_Lva_Scores[attacker][victim]
 
-            elif board.is_check():
-                scored_moves[move] = 0
+            #elif board.is_check():
+#                scored_moves[move] = 0
 
         ordered_move_list = sorted(scored_moves, key=scored_moves.get)
         ordered_move_list.reverse()
@@ -325,9 +426,9 @@ class MovementGenerator:
             # self.pv_line[depth] = str(best_move)
             self.store_pvline(h, best_move, board.turn)
 
-        if board.is_check() and board.legal_moves.count() == 0:
+        #if board.is_check() and board.legal_moves.count() == 0:
 
-            return -1 * (MovementGenerator.INFINITY - board.ply())
+         #   return -1 * (MovementGenerator.INFINITY - board.ply())
 
         return a
 
@@ -336,7 +437,7 @@ class MovementGenerator:
         move_score = -MovementGenerator.INFINITY
 
         # check for null mive
-        if null_move and not board.is_check() and board.ply() > 0 and depth >= 3 and 1 == 2:
+        if null_move and not board.is_check() and board.ply() > 0 and depth >= 3: #and 1 == 2:
             board.push(chess.Move.null())
             move_score = -1 * self.alpha_beta(board, depth - 3, -b, -b + 1, maxd, False)
             board.pop()

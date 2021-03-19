@@ -40,7 +40,7 @@ class Game:
         c = ChessUtils()
         m = MovementGenerator()
         doMove = m.get_next_move_tuxfish
-        designated_depth = 100
+        designated_depth = 6
 
         # calculate max time per move
         ## asuming we want to do 80 moves without be flagged

@@ -13,6 +13,18 @@ class HashEntry:
 
 class Piece_Square_Tables:
 
+
+    mirror_table = [
+        56,57,58,59,60,61,62,63,
+        48,49,50,51,52,53,54,55,
+        40,41,42,43,44,45,46,47,
+        32,33,34,35,36,37,38,39,
+        24,25,26,27,28,29,30,31,
+        16,17,18,19,20,21,22,23,
+        8,9,10,11,12,13,14,15,
+        0,1,2,3,4,5,6,7
+    ]
+
     pawnEvalWhite =     [
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
         5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0,
@@ -24,9 +36,6 @@ class Piece_Square_Tables:
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
     ];
 
-
-    pawnEvalBlack = pawnEvalWhite.copy();
-    pawnEvalBlack.reverse()
 
     knightEval =[
     -5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0,
@@ -52,10 +61,6 @@ class Piece_Square_Tables:
 ];
 
 
-    bishopEvalBlack = bishopEvalWhite.copy()
-    bishopEvalBlack.reverse()
-
-
     rookEvalWhite = [
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5,
@@ -66,9 +71,6 @@ class Piece_Square_Tables:
     -0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5,
     0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0
 ];
-
-    rookEvalBlack = rookEvalWhite.copy()
-    rookEvalBlack.reverse()
 
     evalQueen = [
     -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0,
@@ -93,36 +95,6 @@ class Piece_Square_Tables:
     2.0, 3.0, 1.0, 0.0, 0.0, 1.0, 3.0, 2.0
 ];
 
-    kingEvalBlack = kingEvalWhite.copy()
-    kingEvalBlack.reverse()
-
-    @staticmethod
-    def get_piece_value(piece, position):
-
-        if piece == 'p':
-            return 10 + Piece_Square_Tables.pawnEvalBlack[position]
-        if piece == 'P':
-            return 10 + Piece_Square_Tables.pawnEvalWhite[position]
-        if piece == 'n':
-            return 30 + Piece_Square_Tables.knightEval[position]
-        if piece == 'N':
-            return 30 + Piece_Square_Tables.knightEval[position]
-        if piece == 'b':
-            return 31 + Piece_Square_Tables.bishopEvalBlack[position]
-        if piece == 'B':
-            return 31 + Piece_Square_Tables.bishopEvalWhite[position]
-        if piece == 'q':
-            return 90 + Piece_Square_Tables.evalQueen[position]
-        if piece == 'Q':
-            return 90 + Piece_Square_Tables.evalQueen[position]
-        if piece == 'k':
-            return 900 + Piece_Square_Tables.kingEvalBlack[position]
-        if piece == 'K':
-            return 900 + Piece_Square_Tables.kingEvalWhite[position]
-        if piece == 'r':
-            return 50 + Piece_Square_Tables.rookEvalBlack[position]
-        if piece == 'R':
-            return 50 + Piece_Square_Tables.rookEvalWhite[position]
 
 
 

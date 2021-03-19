@@ -27,7 +27,7 @@ mg = movegen.MovementGenerator()
 board.set_fen("r2r1n2/pp2bk2/2p1p2p/3q4/3PN1QP/2P3R1/P4PP1/5RK1 w - - 0 1") # mate in 4
 
 
-#board.set_fen("8/6Q1/3pp3/3k1p2/B4b2/2P2P2/PPK2P1P/8 w - - 3 29")
+#board.set_fen("8/6Q1/3pp3/3k1p2/B4b2/2P2P2/PPK2P1P/8 w - - 3 29") # heab mate in 1
 
 val = mg.min_max_eval_pychess(board)
 print(val)
